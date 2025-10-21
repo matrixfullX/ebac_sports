@@ -1,41 +1,34 @@
-import { useEffect, useState } from 'react'
 import Header from './components/Header'
 import Produtos from './containers/Produtos'
-
+import {
+  adicionarFavorito,
+  removerFavorito
+} from './store/reducers/favoritos/favoritos'
+import { RootState, AppDispatch } from './store'
+import { useSelector, useDispatch } from 'react-redux'
+import { useGetProdutosQuery } from './services/api'
 import { GlobalStyle } from './styles'
 
 export type Produto = {
-  id: number
   nome: string
+  id: number
+  titulo: string
   preco: number
   imagem: string
 }
 
 function App() {
-  const [produtos, setProdutos] = useState<Produto[]>([])
-  const [carrinho, setCarrinho] = useState<Produto[]>([])
-  const [favoritos, setFavoritos] = useState<Produto[]>([])
+  const dispatch = useDispatch<AppDispatch>()
+  const { data: produtos, isLoading } = useGetProdutosQuery()
+  const favoritos = useSelector((state: RootState) => state.favoritos.itens)
 
-  useEffect(() => {
-    fetch('https://api-ebac.vercel.app/api/ebac_sports')
-      .then((res) => res.json())
-      .then((res) => setProdutos(res))
-  }, [])
-
-  function adicionarAoCarrinho(produto: Produto) {
-    if (carrinho.find((p) => p.id === produto.id)) {
-      alert('Item já adicionado')
-    } else {
-      setCarrinho([...carrinho, produto])
-    }
-  }
+  if (isLoading) return <h2>Carregando ...</h2>
 
   function favoritar(produto: Produto) {
     if (favoritos.find((p) => p.id === produto.id)) {
-      const favoritosSemProduto = favoritos.filter((p) => p.id !== produto.id)
-      setFavoritos(favoritosSemProduto)
+      dispatch(removerFavorito(produto.id))
     } else {
-      setFavoritos([...favoritos, produto])
+      dispatch(adicionarFavorito(produto))
     }
   }
 
@@ -43,13 +36,8 @@ function App() {
     <>
       <GlobalStyle />
       <div className="container">
-        <Header favoritos={favoritos} itensNoCarrinho={carrinho} />
-        <Produtos
-          produtos={produtos}
-          favoritos={favoritos}
-          favoritar={favoritar}
-          adicionarAoCarrinho={adicionarAoCarrinho}
-        />
+        <Header />
+        <Produtos produtos={produtos ?? []} favoritar={favoritar} />
       </div>
     </>
   )

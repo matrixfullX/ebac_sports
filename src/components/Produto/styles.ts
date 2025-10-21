@@ -86,3 +86,10 @@ export const BtnComprar = styled.button`
     );
   }
 `
+
+export const GridProdutos = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 produtos por linha */
+  gap: 16px; /* espaço entre os produtos */
+  margin: 16px 0;
+`
